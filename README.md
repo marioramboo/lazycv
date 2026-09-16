@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 LazyCV — Local-First AI CV & Resume Generator
 
-## Getting Started
+> **Tailor your CV to every job offer in seconds.** Open-source, local-first, privacy-focused. Connect your GitHub, paste a job description, and generate ATS-optimized CVs, cover letters, and interview cheat sheets.
 
-First, run the development server:
+---
+
+## ✨ Features
+
+- **🤖 Bring Your Own AI Provider:** Connect to **OpenAI** (GPT-4o), **Anthropic** (Claude 3.5 Sonnet), **Google Gemini**, or run **100% offline with Ollama** (Llama 3, DeepSeek, Mistral).
+- **🔒 100% Local & Private:** No cloud accounts, external databases, or analytics tracking. All your profile data, CVs, and application logs stay in your browser's IndexedDB.
+- **🐙 GitHub Integration:** Fetch your public repositories, tech stacks, stars, and README highlights directly into your portfolio.
+- **🎯 Live ATS Scoring:** Real-time applicant tracking system match score, missing keyword detection, and formatting optimization.
+- **🎨 5 Professional CV Templates:** Choose from Classic, Modern, Tech, Creative, and Executive layouts.
+- **✏️ WYSIWYG Editor:** Full rich-text inline editing, drag-and-drop section reordering, and instant live preview.
+- **📦 Quick Apply Pack (ZIP Export):** One-click download containing your tailored PDF/DOCX resume, cover letter, and personalized technical interview cheat sheet.
+- **📊 Job Application Tracker:** Built-in Kanban-style application log to track your job search progress from application to offer.
+- **💾 Data Portability:** Complete JSON export and import for seamless backups and device migration.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 14 (App Router, TypeScript)
+- **Styling:** Tailwind CSS, shadcn/ui, Lucide Icons
+- **State & Database:** Zustand, Dexie.js (IndexedDB)
+- **Editor & Export:** Tiptap, @dnd-kit, docx, jsPDF, JSZip
+
+---
+
+## 🚀 Getting Started
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open `http://localhost:3000` in your browser.
