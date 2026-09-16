@@ -17,7 +17,13 @@ const modelsByProvider: Record<AIProviderType, string[]> = {
   anthropic: ["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-haiku-20240307"],
   gemini: ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"],
   ollama: ["llama3", "mistral", "codellama"],
-  nvidia: ["meta/llama-3.3-70b-instruct", "deepseek-ai/deepseek-r1", "meta/llama-3.1-70b-instruct", "nvidia/llama-3.1-nemotron-70b-instruct"],
+  nvidia: [
+    "nvidia/llama-3.1-nemotron-70b-instruct",
+    "mistralai/mistral-large-2-instruct",
+    "deepseek-ai/deepseek-v4-flash-0731",
+    "meta/llama-3.2-11b-vision-instruct",
+    "01-ai/yi-large"
+  ],
 }
 
 export function AIProviderConfig() {
@@ -29,7 +35,7 @@ export function AIProviderConfig() {
   const [localKey, setLocalKey] = useState(apiKey)
   const [localOllamaUrl, setLocalOllamaUrl] = useState(ollamaBaseUrl)
   const [localModelOllama, setLocalModelOllama] = useState(aiProvider === 'ollama' ? model : 'llama3') 
-  const [localModelNvidia, setLocalModelNvidia] = useState(aiProvider === 'nvidia' ? model : 'meta/llama-3.3-70b-instruct')
+  const [localModelNvidia, setLocalModelNvidia] = useState(aiProvider === 'nvidia' ? model : 'nvidia/llama-3.1-nemotron-70b-instruct')
 
   const getActiveModel = () => {
     if (aiProvider === 'ollama') return localModelOllama
