@@ -3,7 +3,7 @@ import { AIProvider } from '@/types/ai';
 
 export function createOpenAIAdapter(apiKey: string, model: string, baseURL?: string): AIProvider {
   const client = new OpenAI({
-    apiKey,
+    apiKey: apiKey.trim(),
     dangerouslyAllowBrowser: true,
     ...(baseURL && { baseURL }),
     timeout: 90000,
@@ -16,7 +16,12 @@ export function createOpenAIAdapter(apiKey: string, model: string, baseURL?: str
       if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
       messages.push({ role: 'user', content: prompt });
 
-      const res = await client.chat.completions.create({ model, messages, temperature: 0.3 });
+      const res = await client.chat.completions.create({
+        model,
+        messages,
+        temperature: 0.3,
+        max_tokens: 4096,
+      });
       return res.choices[0]?.message?.content ?? '';
     },
   };

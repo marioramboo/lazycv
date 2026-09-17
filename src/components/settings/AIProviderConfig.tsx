@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSettingsStore } from "@/stores/settings-store"
 import { AIProviderType } from "@/types/ai"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -18,13 +18,18 @@ const modelsByProvider: Record<AIProviderType, string[]> = {
   gemini: ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"],
   ollama: ["llama3", "mistral", "codellama"],
   nvidia: [
-    "nvidia/llama-3.1-nemotron-70b-instruct",
+    "deepseek-ai/deepseek-r1",
     "mistralai/mistral-large-2-instruct",
-    "deepseek-ai/deepseek-v4-flash-0731",
-    "meta/llama-3.2-11b-vision-instruct",
-    "01-ai/yi-large"
+    "meta/llama-3.1-70b-instruct",
+    "meta/llama-3.1-8b-instruct",
   ],
 }
+
+const isDeprecatedNvidiaModel = (m: string) =>
+  m === "meta/llama-3.3-70b-instruct" ||
+  m === "nvidia/llama-3.1-nemotron-70b-instruct" ||
+  m === "deepseek-ai/deepseek-v4-flash-0731" ||
+  !m;
 
 export function AIProviderConfig() {
   const { aiProvider, apiKey, model, ollamaBaseUrl, setProvider, setApiKey, setModel, setOllamaBaseUrl } = useSettingsStore()
@@ -35,7 +40,28 @@ export function AIProviderConfig() {
   const [localKey, setLocalKey] = useState(apiKey)
   const [localOllamaUrl, setLocalOllamaUrl] = useState(ollamaBaseUrl)
   const [localModelOllama, setLocalModelOllama] = useState(aiProvider === 'ollama' ? model : 'llama3') 
-  const [localModelNvidia, setLocalModelNvidia] = useState(aiProvider === 'nvidia' ? model : 'nvidia/llama-3.1-nemotron-70b-instruct')
+  const [localModelNvidia, setLocalModelNvidia] = useState(
+    aiProvider === 'nvidia' && !isDeprecatedNvidiaModel(model)
+      ? model
+      : 'deepseek-ai/deepseek-r1'
+  )
+
+  // Keep local state in sync when provider or store changes
+  useEffect(() => {
+    setLocalKey(apiKey)
+  }, [aiProvider, apiKey])
+
+  useEffect(() => {
+    setLocalOllamaUrl(ollamaBaseUrl)
+  }, [ollamaBaseUrl])
+
+  useEffect(() => {
+    if (aiProvider === 'nvidia') {
+      setLocalModelNvidia(!isDeprecatedNvidiaModel(model) ? model : 'deepseek-ai/deepseek-r1')
+    } else if (aiProvider === 'ollama') {
+      setLocalModelOllama(model || 'llama3')
+    }
+  }, [aiProvider, model])
 
   const getActiveModel = () => {
     if (aiProvider === 'ollama') return localModelOllama
@@ -44,20 +70,19 @@ export function AIProviderConfig() {
   }
 
   const handleSave = () => {
-    setApiKey(localKey)
-    setOllamaBaseUrl(localOllamaUrl)
-    if (aiProvider === 'ollama') {
-       setModel(localModelOllama)
-    } else if (aiProvider === 'nvidia') {
-       setModel(localModelNvidia)
-    }
+    const trimmedKey = localKey.trim()
+    const activeModel = getActiveModel()
+    setApiKey(trimmedKey)
+    setOllamaBaseUrl(localOllamaUrl.trim())
+    setModel(activeModel)
     toast.success("Settings saved successfully!")
   }
 
   const testConnection = async () => {
     setTestStatus("testing")
+    const trimmedKey = localKey.trim()
     try {
-      if (aiProvider !== 'ollama' && !localKey) throw new Error("API Key required")
+      if (aiProvider !== 'ollama' && !trimmedKey) throw new Error("API Key required")
       const currentModel = getActiveModel()
       
       const res = await fetch("/api/test-ai-provider", {
@@ -65,9 +90,9 @@ export function AIProviderConfig() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider: aiProvider,
-          apiKey: localKey,
+          apiKey: trimmedKey,
           model: currentModel,
-          baseUrl: localOllamaUrl,
+          baseUrl: localOllamaUrl.trim(),
         }),
       })
 
@@ -76,15 +101,20 @@ export function AIProviderConfig() {
         throw new Error(data.error || "Connection test failed")
       }
 
+      // Automatically persist verified settings to store
+      setApiKey(trimmedKey)
+      setOllamaBaseUrl(localOllamaUrl.trim())
+      setModel(currentModel)
+
       setTestStatus("success")
-      toast.success("Connection test successful!")
+      toast.success("Connection test successful! Settings saved.")
       setTimeout(() => setTestStatus("idle"), 3000)
     } catch (err: unknown) {
       console.error("Test connection failed:", err)
       const msg = err instanceof Error ? err.message : "Connection failed"
       setTestStatus("error")
       toast.error(`Connection failed: ${msg}`)
-      setTimeout(() => setTestStatus("idle"), 4000)
+      setTimeout(() => setTestStatus("idle"), 5000)
     }
   }
 
@@ -102,7 +132,6 @@ export function AIProviderConfig() {
             onValueChange={(val) => {
               if (val) {
                 setProvider(val as AIProviderType)
-                setModel(modelsByProvider[val as AIProviderType][0])
               }
             }}
           >
@@ -188,10 +217,16 @@ export function AIProviderConfig() {
                   <Label className="text-xs text-muted-foreground">Custom Nvidia NIM Model Identifier (Optional)</Label>
                   <Input 
                     value={localModelNvidia}
-                    onChange={(e) => setLocalModelNvidia(e.target.value)}
-                    placeholder="meta/llama-3.3-70b-instruct"
+                    onChange={(e) => {
+                      setLocalModelNvidia(e.target.value);
+                      setModel(e.target.value);
+                    }}
+                    placeholder="deepseek-ai/deepseek-r1"
                     className="mt-1 text-xs"
                   />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Select an active model from the <a href="https://build.nvidia.com" target="_blank" rel="noreferrer" className="underline hover:text-foreground">NVIDIA API Catalog</a> (e.g. <code>deepseek-ai/deepseek-r1</code>) and ensure your key has Public API access.
+                  </p>
                 </div>
               )}
             </div>

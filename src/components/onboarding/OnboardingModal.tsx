@@ -165,9 +165,10 @@ export function OnboardingModal() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="openai">OpenAI (GPT-4o / mini)</SelectItem>
-                    <SelectItem value="claude">Anthropic Claude</SelectItem>
+                    <SelectItem value="anthropic">Anthropic Claude</SelectItem>
                     <SelectItem value="gemini">Google Gemini</SelectItem>
                     <SelectItem value="ollama">Ollama (Local LLM)</SelectItem>
+                    <SelectItem value="nvidia">Nvidia NIM</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

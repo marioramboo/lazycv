@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAIProvider } from '@/lib/ai/provider';
+import { formatAIError } from '@/lib/ai/error-handler';
 import { AIProviderConfig } from '@/types/ai';
 
 // ponytail: quick diagnostic endpoint — test if AI API responds at all
@@ -33,12 +34,17 @@ export async function POST(request: Request) {
     });
   } catch (e: unknown) {
     const elapsed = Date.now() - start;
+    const errorMsg = formatAIError(e, {
+      provider: aiConfig.provider,
+      model: aiConfig.model,
+      baseUrl: aiConfig.baseUrl,
+    });
     return NextResponse.json({
       status: 'error',
       provider: aiConfig.provider,
       model: aiConfig.model,
       responseMs: elapsed,
-      error: e instanceof Error ? e.message : String(e),
+      error: errorMsg,
     }, { status: 500 });
   }
 }

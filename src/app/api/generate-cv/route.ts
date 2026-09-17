@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAIProvider } from '@/lib/ai/provider';
 import { generateCV, reOptimize } from '@/lib/ai/cv-generator';
+import { formatAIError } from '@/lib/ai/error-handler';
 import { AIProviderConfig } from '@/types/ai';
 import { UserProfile } from '@/types/profile';
 import { Project } from '@/types/project';
@@ -28,6 +29,11 @@ export async function POST(request: Request) {
         controller.enqueue(encoder.encode(sseMessage(payload)));
 
       try {
+        const keySnippet = body.aiConfig?.apiKey
+          ? `${body.aiConfig.apiKey.substring(0, 7)}...`
+          : 'MISSING';
+        console.log(`[generate-cv] Starting generation with provider=${body.aiConfig?.provider}, model=${body.aiConfig?.model}, key=${keySnippet}`);
+
         const ai = createAIProvider(body.aiConfig);
 
         let cv: GeneratedCV;
@@ -48,7 +54,13 @@ export async function POST(request: Request) {
 
         send({ type: 'done', cv });
       } catch (e: unknown) {
-        send({ type: 'error', message: e instanceof Error ? e.message : 'Generation failed' });
+        console.error('[generate-cv] Generation error:', e);
+        const message = formatAIError(e, {
+          provider: body.aiConfig?.provider,
+          model: body.aiConfig?.model,
+          baseUrl: body.aiConfig?.baseUrl,
+        });
+        send({ type: 'error', message });
       } finally {
         controller.close();
       }

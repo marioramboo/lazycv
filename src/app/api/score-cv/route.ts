@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
 import { createAIProvider } from '@/lib/ai/provider';
 import { scoreCV } from '@/lib/ai/cv-generator';
+import { formatAIError } from '@/lib/ai/error-handler';
 import { AIProviderConfig } from '@/types/ai';
 import { GeneratedCV } from '@/types/cv';
 
 export async function POST(request: Request) {
+  let aiConfig: AIProviderConfig | undefined;
   try {
     const body = await request.json() as {
       cv: GeneratedCV;
       aiConfig: AIProviderConfig;
     };
+    aiConfig = body.aiConfig;
 
     if (!body.cv || !body.aiConfig) {
       return NextResponse.json({ error: 'Missing cv or aiConfig' }, { status: 400 });
@@ -21,6 +24,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ score });
   } catch (error: unknown) {
     console.error('ATS Scoring API error:', error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to score CV' }, { status: 500 });
+    const message = formatAIError(error, {
+      provider: aiConfig?.provider,
+      model: aiConfig?.model,
+      baseUrl: aiConfig?.baseUrl,
+    });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -65,16 +65,27 @@ export default function GeneratePage() {
     }
   };
 
-  const aiConfig = { provider: aiProvider, apiKey, model, baseUrl: ollamaBaseUrl };
+  const getLiveAIConfig = () => {
+    const settings = useSettingsStore.getState();
+    return {
+      provider: settings.aiProvider,
+      apiKey: settings.apiKey,
+      model: settings.model,
+      baseUrl: settings.ollamaBaseUrl,
+    };
+  };
 
   const handleGenerate = async () => {
-    if (!effectiveJobText || !isAIConfigured) return;
-    await generateCV(effectiveJobText, profile, projects, aiConfig);
+    const liveConfig = getLiveAIConfig();
+    const isConfigured = liveConfig.provider === 'ollama' || !!liveConfig.apiKey;
+    if (!effectiveJobText || !isConfigured) return;
+    await generateCV(effectiveJobText, profile, projects, liveConfig);
   };
 
   const handleReOptimize = async () => {
     if (!currentCV || currentCV.optimizationCount >= 3) return;
-    await reOptimize(aiConfig);
+    const liveConfig = getLiveAIConfig();
+    await reOptimize(liveConfig);
   };
 
   return (
@@ -96,6 +107,29 @@ export default function GeneratePage() {
               Go to Settings
             </NextLink>{" "}
             to add your API key.
+          </span>
+        </div>
+      )}
+
+      {isAIConfigured && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <span>
+              Active AI: <span className="font-semibold text-foreground capitalize">{aiProvider === 'nvidia' ? 'Nvidia NIM' : aiProvider}</span> &bull; Model: <code className="font-mono text-foreground font-semibold">{model}</code>
+            </span>
+          </div>
+          <NextLink href="/dashboard/settings" className="text-primary underline hover:text-primary/80">
+            Change in Settings
+          </NextLink>
+        </div>
+      )}
+
+      {aiProvider === 'nvidia' && apiKey && !apiKey.startsWith('nvapi-') && (
+        <div className="flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>
+            <strong>Key mismatch detected:</strong> You selected Nvidia NIM, but your saved API key starts with <code>{apiKey.substring(0, 7)}...</code> instead of <code>nvapi-</code>. Please <NextLink href="/dashboard/settings" className="underline font-semibold">go to Settings</NextLink> and save your NVIDIA API key.
           </span>
         </div>
       )}
